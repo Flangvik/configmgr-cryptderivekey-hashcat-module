@@ -1,15 +1,60 @@
-# AES-128 ConfigMgr CryptDeriveKey Hashcat Module
+# ConfigMgr CryptDeriveKey Hashcat Module
 
-This repo contains the module and OpenCL code that implements an AES-128 key derivation for ConfigMgr media variable files. This key derivation is based completely on the documented steps at [https://docs.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptderivekey#remarks](https://docs.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptderivekey#remarks).The code has recently been updated to work with Hashcat 6.2.5. In order to use it, you will need to compile Hashcat to obtain a .so/.dll/.dylib library of `module_19850.c`. The OpenCL code is dynamically compiled by Hashcat during module initialisation. 
+Hashcat modules for cracking passwords used to encrypt ConfigMgr/MECM/SCCM media variable files. Key derivation follows Microsoft's documented [CryptDeriveKey](https://docs.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptderivekey#remarks) process.
 
-## Instructions
+## Supported Modes
 
-1. Clone the Hashcat source repository. Remember, this code base was developed with 6.2.5 in mind, but it will likely work with the latest version unless there has been a recent breaking change to the code base
-2. Copy `module_19850.c` into src/modules/ folder of the main Hashcat code base
-3. Copy `m19850_a0-pure.cl`, `m19850_a1-pure.cl` and `m19850_a3-pure.cl` into the OpenCL/ folder of the main Hashcat code base
-4. Follow the compilation instructions in Hashcat's BUILD.md. I would very highly recommend using the WSL option if you are compiling on Windows, as I had the best results with that. 
-5. After it is compiled, use it as you would any other Hashcat module. Keep in mind that it is tuned for the hashes produced with PXEThief by `pxethief 5 <media variables file name>`, although it should be straightforward to adapt this to any AES-128 CryptDeriveKey based key fairly easily
+| Mode  | Algorithm | CALG_ID    | Hash Prefix        |
+|-------|-----------|------------|--------------------|
+| 19850 | AES-128   | 0x0000660e | `$sccm$aes128$`   |
+| 19860 | AES-256   | 0x00006610 | `$sccm$aes256$`   |
 
-## Author Credit 
+The algorithm is determined by the CALG_ID at bytes 16-19 of the `.var` file header. Check bytes 16-19 (little-endian) to know which mode to use:
+- `0e660000` → AES-128 → mode 19850
+- `10660000` → AES-256 → mode 19860
 
-Copyright (C) 2022 Christopher Panayi, MWR CyberSec
+## Hash Format
+
+The hash is the hex encoding of the first 40 bytes of the media variables `.var` file:
+
+```
+$sccm$aes128$<80 hex chars>
+$sccm$aes256$<80 hex chars>
+```
+
+Extract with: `xxd -p -l 40 <file>.var | tr -d '\n'` then prepend the appropriate prefix.
+
+## Usage
+
+```bash
+# AES-128
+hashcat -m 19850 -a 0 '$sccm$aes128$...' wordlist.txt
+
+# AES-256
+hashcat -m 19860 -a 0 '$sccm$aes256$...' wordlist.txt
+```
+
+## Build Instructions
+
+1. Clone the Hashcat source repository (developed with 6.2.5+)
+2. Copy module files into the Hashcat source tree:
+   - `module_19850.c` and `module_19860.c` → `src/modules/`
+   - `m19850_*.cl` and `m19860_*.cl` → `OpenCL/`
+3. Compile Hashcat per BUILD.md (WSL recommended on Windows)
+
+## Self-Test Hashes
+
+Both modules self-test against password `Password1`:
+
+```
+# AES-128 (mode 19850)
+$sccm$aes128$0000edec14000000b2320000c03200000e6600000000000011cb54aa3b699f61f86ab312e6fb97ec
+
+# AES-256 (mode 19860)
+$sccm$aes256$0000edec14000000b2320000c032000010660000000000003dd6b8bc6cc41f718b07522266e188ce
+```
+
+## Author Credit
+
+AES-128 module: Copyright (C) 2022 Christopher Panayi, MWR CyberSec
+AES-256 module: Flangvik / TrustedSec (adapted from original)
