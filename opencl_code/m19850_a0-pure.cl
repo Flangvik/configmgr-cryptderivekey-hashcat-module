@@ -15,7 +15,7 @@
 #include M2S(INCLUDE_PATH/inc_scalar.cl)
 #endif
 
-DECLSPEC void crypt_derive_key_password_derivation (sha1_hmac_ctx_t *ctx, const u32 *w, const int len)
+DECLSPEC void crypt_derive_key_password_derivation (PRIVATE_AS sha1_hmac_ctx_t *ctx, PRIVATE_AS const u32 *w, const int len)
 {
   u32 w0[4];
   u32 w1[4];
@@ -78,7 +78,7 @@ DECLSPEC void crypt_derive_key_password_derivation (sha1_hmac_ctx_t *ctx, const 
   sha1_final(&ctx->ipad);
 }
 
-KERNEL_FQ void m19850_mxx (KERN_ATTR_RULES())
+KERNEL_FQ KERNEL_FA void m19850_mxx (KERN_ATTR_RULES())
 {
   /**
    * base
@@ -94,12 +94,6 @@ KERNEL_FQ void m19850_mxx (KERN_ATTR_RULES())
 
   #ifdef REAL_SHM
 
-  LOCAL_VK u32 s_td0[256];
-  LOCAL_VK u32 s_td1[256];
-  LOCAL_VK u32 s_td2[256];
-  LOCAL_VK u32 s_td3[256];
-  LOCAL_VK u32 s_td4[256];
-
   LOCAL_VK u32 s_te0[256];
   LOCAL_VK u32 s_te1[256];
   LOCAL_VK u32 s_te2[256];
@@ -108,12 +102,6 @@ KERNEL_FQ void m19850_mxx (KERN_ATTR_RULES())
 
   for (u32 i = lid; i < 256; i += lsz)
   {
-    s_td0[i] = td0[i];
-    s_td1[i] = td1[i];
-    s_td2[i] = td2[i];
-    s_td3[i] = td3[i];
-    s_td4[i] = td4[i];
-
     s_te0[i] = te0[i];
     s_te1[i] = te1[i];
     s_te2[i] = te2[i];
@@ -124,12 +112,6 @@ KERNEL_FQ void m19850_mxx (KERN_ATTR_RULES())
   SYNC_THREADS ();
 
   #else
-
-  CONSTANT_AS u32a *s_td0 = td0;
-  CONSTANT_AS u32a *s_td1 = td1;
-  CONSTANT_AS u32a *s_td2 = td2;
-  CONSTANT_AS u32a *s_td3 = td3;
-  CONSTANT_AS u32a *s_td4 = td4;
 
   CONSTANT_AS u32a *s_te0 = te0;
   CONSTANT_AS u32a *s_te1 = te1;
@@ -186,7 +168,7 @@ KERNEL_FQ void m19850_mxx (KERN_ATTR_RULES())
   }
 }
 
-KERNEL_FQ void m19850_sxx (KERN_ATTR_RULES())
+KERNEL_FQ KERNEL_FA void m19850_sxx (KERN_ATTR_RULES())
 {
   /**
    * base
@@ -196,19 +178,11 @@ KERNEL_FQ void m19850_sxx (KERN_ATTR_RULES())
   const u64 lid = get_local_id (0);
   const u64 lsz = get_local_size (0);
 
-  if (gid >= GID_CNT) return;
-
   /**
    * aes shared
    */
 
   #ifdef REAL_SHM
-
-  LOCAL_VK u32 s_td0[256];
-  LOCAL_VK u32 s_td1[256];
-  LOCAL_VK u32 s_td2[256];
-  LOCAL_VK u32 s_td3[256];
-  LOCAL_VK u32 s_td4[256];
 
   LOCAL_VK u32 s_te0[256];
   LOCAL_VK u32 s_te1[256];
@@ -218,12 +192,6 @@ KERNEL_FQ void m19850_sxx (KERN_ATTR_RULES())
 
   for (u32 i = lid; i < 256; i += lsz)
   {
-    s_td0[i] = td0[i];
-    s_td1[i] = td1[i];
-    s_td2[i] = td2[i];
-    s_td3[i] = td3[i];
-    s_td4[i] = td4[i];
-
     s_te0[i] = te0[i];
     s_te1[i] = te1[i];
     s_te2[i] = te2[i];
@@ -235,12 +203,6 @@ KERNEL_FQ void m19850_sxx (KERN_ATTR_RULES())
 
   #else
 
-  CONSTANT_AS u32a *s_td0 = td0;
-  CONSTANT_AS u32a *s_td1 = td1;
-  CONSTANT_AS u32a *s_td2 = td2;
-  CONSTANT_AS u32a *s_td3 = td3;
-  CONSTANT_AS u32a *s_td4 = td4;
-
   CONSTANT_AS u32a *s_te0 = te0;
   CONSTANT_AS u32a *s_te1 = te1;
   CONSTANT_AS u32a *s_te2 = te2;
@@ -248,6 +210,8 @@ KERNEL_FQ void m19850_sxx (KERN_ATTR_RULES())
   CONSTANT_AS u32a *s_te4 = te4;
 
   #endif
+
+  if (gid >= GID_CNT) return;
 
   const u32 search[4] =
   {
