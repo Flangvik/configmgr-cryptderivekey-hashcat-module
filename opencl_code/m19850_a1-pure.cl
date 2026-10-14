@@ -18,7 +18,7 @@
 //CryptDeriveKey is basically sha1hmac if the input is forced to be greater than 64. Based on the code from sha1_hmac_init_vector and ipad from sha1_hmac_init_vector_64. 
 //I only implement ipad calculation though, because this allows for the generation of up to a max of 512bit symmetric keys, which is already a lot
 //This implementation is initialised with a sha1_ctx_t object for the left-hand side password (pws) as part of the combinator attack, and updated with the right-hand side password (combs_buf)
-DECLSPEC void crypt_derive_key_password_derivation (sha1_hmac_ctx_t *ctx, sha1_ctx_t *pwsorig, GLOBAL_AS const u32 *w, const int len)
+DECLSPEC void crypt_derive_key_password_derivation (PRIVATE_AS sha1_hmac_ctx_t *ctx, PRIVATE_AS sha1_ctx_t *pwsorig, GLOBAL_AS const u32 *w, const int len)
 {
   u32 w0[4];
   u32 w1[4];
@@ -26,7 +26,7 @@ DECLSPEC void crypt_derive_key_password_derivation (sha1_hmac_ctx_t *ctx, sha1_c
   u32 w3[4];
 
   //Add right side password to left side password with a second call to sha1_update_global_utf16le_swap
-  sha1_ctx_t *tmp = pwsorig;
+  PRIVATE_AS sha1_ctx_t *tmp = pwsorig;
 
   sha1_update_global_utf16le_swap (tmp, w, len);
 
@@ -80,7 +80,7 @@ DECLSPEC void crypt_derive_key_password_derivation (sha1_hmac_ctx_t *ctx, sha1_c
   sha1_final(&ctx->ipad);
 }
 
-KERNEL_FQ void m19850_mxx (KERN_ATTR_BASIC())
+KERNEL_FQ KERNEL_FA void m19850_mxx (KERN_ATTR_BASIC())
 {
   /**
    * base
@@ -96,12 +96,6 @@ KERNEL_FQ void m19850_mxx (KERN_ATTR_BASIC())
 
   #ifdef REAL_SHM
 
-  LOCAL_VK u32 s_td0[256];
-  LOCAL_VK u32 s_td1[256];
-  LOCAL_VK u32 s_td2[256];
-  LOCAL_VK u32 s_td3[256];
-  LOCAL_VK u32 s_td4[256];
-
   LOCAL_VK u32 s_te0[256];
   LOCAL_VK u32 s_te1[256];
   LOCAL_VK u32 s_te2[256];
@@ -110,12 +104,6 @@ KERNEL_FQ void m19850_mxx (KERN_ATTR_BASIC())
 
   for (u32 i = lid; i < 256; i += lsz)
   {
-    s_td0[i] = td0[i];
-    s_td1[i] = td1[i];
-    s_td2[i] = td2[i];
-    s_td3[i] = td3[i];
-    s_td4[i] = td4[i];
-
     s_te0[i] = te0[i];
     s_te1[i] = te1[i];
     s_te2[i] = te2[i];
@@ -126,12 +114,6 @@ KERNEL_FQ void m19850_mxx (KERN_ATTR_BASIC())
   SYNC_THREADS ();
 
   #else
-
-  CONSTANT_AS u32a *s_td0 = td0;
-  CONSTANT_AS u32a *s_td1 = td1;
-  CONSTANT_AS u32a *s_td2 = td2;
-  CONSTANT_AS u32a *s_td3 = td3;
-  CONSTANT_AS u32a *s_td4 = td4;
 
   CONSTANT_AS u32a *s_te0 = te0;
   CONSTANT_AS u32a *s_te1 = te1;
@@ -191,7 +173,7 @@ KERNEL_FQ void m19850_mxx (KERN_ATTR_BASIC())
   }
 }
 
-KERNEL_FQ void m19850_sxx (KERN_ATTR_BASIC())
+KERNEL_FQ KERNEL_FA void m19850_sxx (KERN_ATTR_BASIC())
 {
   /**
    * base
@@ -207,12 +189,6 @@ KERNEL_FQ void m19850_sxx (KERN_ATTR_BASIC())
 
   #ifdef REAL_SHM
 
-  LOCAL_VK u32 s_td0[256];
-  LOCAL_VK u32 s_td1[256];
-  LOCAL_VK u32 s_td2[256];
-  LOCAL_VK u32 s_td3[256];
-  LOCAL_VK u32 s_td4[256];
-
   LOCAL_VK u32 s_te0[256];
   LOCAL_VK u32 s_te1[256];
   LOCAL_VK u32 s_te2[256];
@@ -221,12 +197,6 @@ KERNEL_FQ void m19850_sxx (KERN_ATTR_BASIC())
 
   for (u32 i = lid; i < 256; i += lsz)
   {
-    s_td0[i] = td0[i];
-    s_td1[i] = td1[i];
-    s_td2[i] = td2[i];
-    s_td3[i] = td3[i];
-    s_td4[i] = td4[i];
-
     s_te0[i] = te0[i];
     s_te1[i] = te1[i];
     s_te2[i] = te2[i];
@@ -237,12 +207,6 @@ KERNEL_FQ void m19850_sxx (KERN_ATTR_BASIC())
   SYNC_THREADS ();
 
   #else
-
-  CONSTANT_AS u32a *s_td0 = td0;
-  CONSTANT_AS u32a *s_td1 = td1;
-  CONSTANT_AS u32a *s_td2 = td2;
-  CONSTANT_AS u32a *s_td3 = td3;
-  CONSTANT_AS u32a *s_td4 = td4;
 
   CONSTANT_AS u32a *s_te0 = te0;
   CONSTANT_AS u32a *s_te1 = te1;

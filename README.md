@@ -36,11 +36,15 @@ hashcat -m 19860 -a 0 '$sccm$aes256$...' wordlist.txt
 
 ## Build Instructions
 
-1. Clone the Hashcat source repository (developed with 6.2.5+)
+1. Clone the Hashcat source repository (tested with v7.1.2-919-g7456ea592; this plugin API is not compatible with 6.x)
 2. Copy module files into the Hashcat source tree:
    - `module_19850.c` and `module_19860.c` → `src/modules/`
    - `m19850_*.cl` and `m19860_*.cl` → `OpenCL/`
 3. Compile Hashcat per BUILD.md (WSL recommended on Windows)
+
+Supported attack modes: 0, 1, 3, 6, 7 (and 9). `-a 4` (PCFG) works but runs on the host because there is no on-device a4 kernel. `-a 12` only works with the word at the start or end of the mask; with the word in the middle it silently cracks nothing.
+
+Note: the built-in self-test runs with a minimal thread count, so it cannot catch work-group or shared-memory bugs. After changing a kernel, also crack the self-test hash with a small wordlist (`-a 0`) and with a literal mask (`-a 3 Password1`).
 
 ## Self-Test Hashes
 
